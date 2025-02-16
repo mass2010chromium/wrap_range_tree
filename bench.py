@@ -1,4 +1,3 @@
-
 class Node:
 
     def __init__(self, left, right, x, label):
@@ -10,144 +9,6 @@ class Node:
     def __str__(self):
         return f"Node({self.x}, {self.label})"
 
-
-class RingTree:
-
-    def __init__(self, max_x):
-        self.max = max_x
-        self.root = None
-
-    def construct(self, data, labels):
-        idx = np.argsort(data)
-        data = data[idx]
-        labels = labels[idx]
-        self.root = self._construct(data, labels)
-
-    def _construct(self, data, labels):
-        """Returns a root and does so recursively."""
-        if len(data) == 0:
-            return None
-        if len(data) == 1:
-            return Node(None, None, data[0], labels[0])
-        
-        mid_idx = (len(data) - 1) // 2
-        return Node(
-            self._construct(data[:mid_idx], labels[:mid_idx]),
-            self._construct(data[mid_idx+1:], labels[mid_idx+1:]),
-            data[mid_idx], labels[mid_idx]
-        )
-
-    def binsearch(self, x):
-        cand1 = self.find_close_right(self.root, x)
-        cand2 = self.find_close_left(self.root, x)
-
-        if cand1 is None:
-            cand1 = self.root
-            while cand1.l:
-                cand1 = cand1.l
-            dist1 = cand1.x - x + self.max
-        else:
-            dist1 = cand1.x - x
-
-        if cand2 is None:
-            cand2 = self.root
-            while cand2.r:
-                cand2 = cand2.r
-            dist2 = x - cand2.x + self.max
-        else:
-            dist2 = x - cand2.x
-
-        if dist1 < dist2:
-            return cand1.label
-        return cand2.label
-
-    def find_close_right(self, node, x):
-        # Find the closest node that is greater or equal to x.
-        if node.x == x:
-            return node
-        if node.x > x:
-            if node.l is None:
-                return node
-            cand = self.find_close_right(node.l, x)
-            if cand is None:
-                return node
-            if cand.x < node.x:
-                return cand
-            return node
-
-        if node.r is None:
-            return None     # Nothing bigger than x.
-        return self.find_close_right(node.r, x)
-
-    def find_close_left(self, node, x):
-        # Find the closest node that is less or equal to x.
-        if node.x == x:
-            return node
-        if node.x < x:
-            if node.r is None:
-                return node
-            cand = self.find_close_left(node.r, x)
-            if cand is None:
-                return node
-            if cand.x > node.x:
-                return cand
-            return node
-
-        if node.l is None:
-            return None     # Nothing less than x.
-        return self.find_close_left(node.l, x)
-    
-
-    def report_right(self, node, x, ret):
-        if node is None:
-            return
-        if node.x > x:
-            self.report_right(node.l, x, ret)
-            ret.append(node)
-        self.report_right(node.r, x, ret)
-    
-    def report_left(self, node, x, ret):
-        if node is None:
-            return
-        self.report_left(node.l, x, ret)
-        if node.x < x:
-            ret.append(node)
-            self.report_left(node.r, x, ret)
-
-    def get_range(self, x_start, x_end):
-        # Always sweeping from x_start -> x_end.
-        if x_start > x_end:
-            # Actually easy case. We just report everything to the right of x_start and left of x_end.
-            ret = []
-            self.report_right(self.root, x_start, ret)
-            self.report_left(self.root, x_end, ret)
-            return ret
-
-        node = self.root
-        while node:
-            if node.x > x_start and node.x < x_end:
-                ret = []
-                self.report_right(node.l, x_start, ret)
-                ret.append(node)
-                self.report_left(node.r, x_end, ret)
-                return ret
-            if node.x < x_start:
-                node = node.r
-            elif node.x > x_end:
-                node = node.l
-        return []
-
-    def traverse(self):
-        ret = []
-        self._traverse(self.root, ret)
-        return ret
-
-    def _traverse(self, node, ret):
-        if node is None:
-            return ret
-        self._traverse(node.l, ret)
-        ret.append(node.x)
-        self._traverse(node.r, ret)
 
 def ring_distance(limit, x1, x2):
     return min(
@@ -385,87 +246,45 @@ if __name__ == "__main__":
     import numpy as np
     import ring_rangetree
     np.random.seed(0)
-    n = 3000
-    data = np.random.random(n)
-    labels = np.array(range(n))
-
-    limit = 1
-
-    tree = RingTree(limit)
-    tree.construct(data, labels)
-    res = tree.traverse()
-
-    #test_search_nearest(tree, data, labels, limit, niter=10000)
-    #test_range_search(tree, data, labels, limit, niter=1000)
-
-    data2 = np.random.random((n, 2))
-    #data2[:, 1] = np.linspace(0, 1, n, endpoint=False)
-    # sneaking in third column for labels
-    #data2[:, 2] = np.array(range(n))
-    cyl_tree = ring_rangetree.CylinderTree(limit)
-    t0 = time.time()
-    cyl_tree.construct(data2)
-    t1 = time.time()
-    print("Construction took", t1-t0, "sec")
-
-    python_cyl_tree = CylinderTree(limit)
-    t0 = time.time()
-    python_cyl_tree.construct(data2)
-    t1 = time.time()
-    print("Py Construction took", t1-t0, "sec")
-
+    n_trials = 10
+    construct_time = 0
     compute_time = 0
-    py_compute_time = 0
-    bruteforce_time = 0
     collide_time = 0
-    py_collide_time = 0
-    for j in range(3000):
-        r_start = np.random.random()
-        r_end = np.random.random()
-        t_start = np.random.random()
-        t_end = np.random.random()
+    for k in range(n_trials):
+        n = 3000
+        data = np.random.random(n)
+        labels = np.array(range(n))
 
-        if r_start > r_end:
-            tmp = r_end
-            r_end = r_start
-            r_start = tmp
+        limit = 1
 
-        has_point = True
+        data2 = np.random.random((n, 2))
+        cyl_tree = ring_rangetree.CylinderTree(limit)
+        #cyl_tree = CylinderTree(limit)
         t0 = time.time()
-        points = cyl_tree.get_range((r_start, r_end), (t_start, t_end))
+        cyl_tree.construct(data2)
         t1 = time.time()
-        if len(points) == 0:
-            points = np.empty((0, 2))
-            has_point = False
-        else:
-            points = np.stack(points)
+        construct_time += t1 - t0
 
-        #found = set(tuple(x) for x in points)
+        for j in range(3000):
+            r_start = np.random.random()
+            r_end = np.random.random()
+            t_start = np.random.random()
+            t_end = np.random.random()
 
-        t2 = time.time()
-        gt_computes = [is_in_box(limit, r_start, r_end, t_start, t_end, data2[i]) for i in range(n)]
-        t3 = time.time()
-        collide = cyl_tree.contains_point((r_start, r_end), (t_start, t_end))
-        t4 = time.time()
-        points = python_cyl_tree.get_range((r_start, r_end), (t_start, t_end))
-        t5 = time.time()
-        collide = python_cyl_tree.contains_point((r_start, r_end), (t_start, t_end))
-        t6 = time.time()
+            if r_start > r_end:
+                tmp = r_end
+                r_end = r_start
+                r_start = tmp
 
-        #for i in range(n):
-        #    gt = gt_computes[i]
-        #    calc = tuple(data2[i]) in found
-        #    if gt != calc:
-        #        print("BBBBB", gt, calc, data2[i])
+            t0 = time.time()
+            points = cyl_tree.get_range((r_start, r_end), (t_start, t_end))
+            t1 = time.time()
+            collide = cyl_tree.contains_point((r_start, r_end), (t_start, t_end))
+            t2 = time.time()
 
-        compute_time += t1 - t0
-        py_compute_time += t5 - t4
-        collide_time += t4 - t3
-        py_collide_time += t6 - t5
-        bruteforce_time += t3 - t2
+            compute_time += t1 - t0
+            collide_time += t2 - t1
 
-    print("Bruteforce:", bruteforce_time)
-    print("Range-tree:", compute_time)
-    print("Py-Range-tree:", py_compute_time)
-    print("Collide only:", collide_time)
-    print("Py-Collide only:", py_collide_time)
+    print("construct:", construct_time)
+    print("contain_point:", compute_time)
+    print("collide:", collide_time)
