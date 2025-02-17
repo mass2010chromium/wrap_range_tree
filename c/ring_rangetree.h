@@ -27,7 +27,7 @@ typedef struct treenode {
 
 
 static inline treenode* make_treenode(point2* val, size_t num_subpoints, point2* data) {
-    treenode* t = malloc(sizeof(treenode) + num_subpoints * sizeof(point2));
+    treenode* t = (treenode*) malloc(sizeof(treenode) + num_subpoints * sizeof(point2));
     t->left = NULL;
     t->right = NULL;
     memcpy(&t->val, val, sizeof(point2));
@@ -88,7 +88,7 @@ static inline treenode* construct_recurse(size_t n_points, point2* point_data) {
 
     // Overkill size. It's OK because this is not gonna be stored.
     point2* left_points = point_data;
-    point2* right_points = malloc(sizeof(point2) * n_points);
+    point2* right_points = (point2*) malloc(sizeof(point2) * n_points);
 
     size_t left_size = 0;
     size_t right_size = 0;
@@ -117,7 +117,7 @@ static inline void cylindertree_construct(cylindertree* t, size_t n_points, poin
     qsort(point_data, n_points, sizeof(point2), (int(*)(const void*, const void*)) &cmp_r);
     t->root = construct_recurse(n_points, point_data);
     t->report_size = 0;
-    t->report_scratch = realloc(t->report_scratch, n_points * sizeof(point2));
+    t->report_scratch = (point2*) realloc(t->report_scratch, n_points * sizeof(point2));
 }
 
 #define report_item(t, item) { \
