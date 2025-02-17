@@ -1,5 +1,7 @@
 env
 __pycache__
+dist
+ring_rangetree.egg-info
 *.swp
 *.swo
 

@@ -196,7 +196,7 @@ PyObject* CylinderTree_contains_point(PyObject* _self, PyObject* const* args, Py
 }
 
 static PyObject*
-CylinderTree_traverse(CylinderTreeObject* self, PyObject* /*args*/) {
+CylinderTree_traverse(CylinderTreeObject* self, PyObject* _args) {
     cylindertree_traverse(&self->tree);
     return points_to_py(self->tree.report_size, self->tree.report_scratch);
 }
@@ -214,12 +214,12 @@ static PyMethodDef CylinderTree_methods[] = {
 };
 
 static PyObject*
-CylinderTree_get_num_points(CylinderTreeObject* self, void* /*closure*/) {
+CylinderTree_get_num_points(CylinderTreeObject* self, void* _closure) {
     return PyFloat_FromDouble(self->tree.num_points);
 }
 
 static PyObject*
-CylinderTree_get_all_points(CylinderTreeObject* self, void* /*closure*/) {
+CylinderTree_get_all_points(CylinderTreeObject* self, void* _closure) {
     return points_to_py(self->tree.num_points, self->tree.root->data_ptr);
 }
 
