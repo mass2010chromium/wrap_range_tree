@@ -16,6 +16,7 @@ typedef struct {
 static void
 CylinderTree_dealloc(CylinderTreeObject* self) {
     cylindertree_free(&self->tree);
+    Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
 static PyObject*
@@ -242,7 +243,7 @@ static PyTypeObject CylinderTreeType = {
     .tp_itemsize = 0,
     .tp_dealloc = (destructor) CylinderTree_dealloc,
     .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_doc = PyDoc_STR("Franka Driver, implemented in C++"),
+    .tp_doc = PyDoc_STR("Range tree on (r, theta)."),
     .tp_methods = CylinderTree_methods,
     .tp_members = CylinderTree_members,
     .tp_getset = CylinderTree_getsetters,
